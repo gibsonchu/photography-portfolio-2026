@@ -28,6 +28,13 @@ export type Photo = {
   order: number;
 };
 
+export type ImageAsset = {
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+};
+
 export type Submission = {
   id: string;
   name: string;
@@ -43,6 +50,7 @@ export type Submission = {
 export type SiteContent = {
   homeIntro: string;
   aboutText: string;
+  aboutPortrait: ImageAsset;
   photos: Photo[];
   submissions: Submission[];
 };

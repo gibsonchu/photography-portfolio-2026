@@ -1,12 +1,10 @@
 import Image from "next/image";
 import { PageShell } from "@/components/page-shell";
-import { getSiteContent, publicPhotos } from "@/lib/data";
+import { getSiteContent } from "@/lib/data";
 
 export default async function AboutPage() {
   const content = await getSiteContent();
-  const portrait =
-    publicPhotos(content).find((photo) => photo.categories.includes("Portraits")) ||
-    publicPhotos(content)[0];
+  const portrait = content.aboutPortrait;
 
   return (
     <PageShell>
@@ -14,7 +12,7 @@ export default async function AboutPage() {
         <div className="about-image">
           <Image
             src={portrait.src}
-            alt="Portrait placeholder for Gibson Chu"
+            alt={portrait.alt}
             width={portrait.width}
             height={portrait.height}
             sizes="(max-width: 900px) 100vw, 42vw"

@@ -5,6 +5,12 @@ export const defaultContent: SiteContent = {
     "New York-based photographer documenting people, gatherings, cities, and the communities that shape them.",
   aboutText:
     "Gibson Chu is a New York-based photographer whose work focuses on people, cities, and everyday moments. His photography is shaped by street, travel, and film photography, with an emphasis on natural light, atmosphere, and documentary storytelling. He is available for events, portraits, and editorial/documentary commissions.",
+  aboutPortrait: {
+    src: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1400&q=82",
+    width: 1400,
+    height: 1750,
+    alt: "Portrait placeholder for Gibson Chu",
+  },
   submissions: [],
   photos: [
     {

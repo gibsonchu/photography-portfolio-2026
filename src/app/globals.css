@@ -368,6 +368,45 @@ img {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.about-portrait-admin {
+  align-items: start;
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 16px;
+  grid-column: 1 / -1;
+  grid-template-columns: 160px minmax(0, 1fr);
+  padding: 14px;
+}
+
+.about-portrait-admin p,
+.flag-control p {
+  margin: 0;
+}
+
+.about-portrait-admin p {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.about-portrait-admin span,
+.flag-control p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.about-portrait-preview {
+  aspect-ratio: 4 / 5;
+  background: #ddd7cc;
+  overflow: hidden;
+}
+
+.about-portrait-preview img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
 label,
 fieldset {
   color: var(--muted);
@@ -446,8 +485,7 @@ textarea {
 }
 
 .admin-top,
-.editor-toolbar,
-.toggle-row {
+.editor-toolbar {
   align-items: center;
   display: flex;
   gap: 12px;
@@ -523,17 +561,26 @@ textarea {
   overflow: hidden;
 }
 
-.toggle-row {
-  flex-wrap: wrap;
-  justify-content: flex-start;
+.photo-flags {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.toggle-row button {
+.flag-control {
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.flag-control button {
   background: transparent;
   color: var(--foreground);
+  width: 100%;
 }
 
-.toggle-row button.active {
+.flag-control button.active {
   background: var(--ink);
   color: white;
 }
@@ -587,6 +634,8 @@ fieldset input {
   .contact-layout,
   .admin-shell,
   .photo-editor,
+  .photo-flags,
+  .about-portrait-admin,
   .inquiry-form,
   .content-editor,
   .field-grid {

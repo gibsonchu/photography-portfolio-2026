@@ -2,7 +2,7 @@ import { put, list } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import { defaultContent } from "./default-data";
-import type { Photo, SiteContent, Submission } from "./types";
+import type { ImageAsset, Photo, SiteContent, Submission } from "./types";
 
 const localDataPath = path.join(process.cwd(), "data", "content.json");
 const blobDataPath = "site-data/content.json";
@@ -11,11 +11,23 @@ function hasBlob() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
-function sortContent(content: SiteContent): SiteContent {
+function normalizeContent(content: SiteContent): SiteContent {
   return {
     ...content,
-    photos: [...content.photos].sort((a, b) => a.order - b.order),
-    submissions: [...content.submissions].sort(
+    homeIntro: content.homeIntro || defaultContent.homeIntro,
+    aboutText: content.aboutText || defaultContent.aboutText,
+    aboutPortrait: content.aboutPortrait || defaultContent.aboutPortrait,
+    photos: content.photos || [],
+    submissions: content.submissions || [],
+  };
+}
+
+function sortContent(content: SiteContent): SiteContent {
+  const normalized = normalizeContent(content);
+  return {
+    ...normalized,
+    photos: [...normalized.photos].sort((a, b) => a.order - b.order),
+    submissions: [...normalized.submissions].sort(
       (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
     ),
   };
@@ -83,6 +95,14 @@ export async function uploadPhotoFile(file: File): Promise<Pick<Photo, "src" | "
   const bytes = Buffer.from(await file.arrayBuffer());
   await fs.writeFile(path.join(uploadsDir, filename), bytes);
   return { src: `/uploads/${filename}`, width: 1600, height: 1067 };
+}
+
+export async function uploadImageAsset(file: File, alt: string): Promise<ImageAsset> {
+  const asset = await uploadPhotoFile(file);
+  return {
+    ...asset,
+    alt,
+  };
 }
 
 export function publicPhotos(content: SiteContent) {

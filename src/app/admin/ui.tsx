@@ -3,7 +3,13 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Eye, EyeOff, GripVertical, LogOut, Save, Star, Upload } from "lucide-react";
-import { categories, type Category, type Photo, type SiteContent } from "@/lib/types";
+import {
+  categories,
+  type Category,
+  type ImageAsset,
+  type Photo,
+  type SiteContent,
+} from "@/lib/types";
 
 type Props = {
   initialAuthed: boolean;
@@ -61,6 +67,14 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
     setContent(next);
   }
 
+  function updateAboutPortrait(patch: Partial<ImageAsset>) {
+    if (!content) return;
+    setContent({
+      ...content,
+      aboutPortrait: { ...content.aboutPortrait, ...patch },
+    });
+  }
+
   function updateCategory(photo: Photo, category: Category, checked: boolean) {
     const nextCategories = checked
       ? Array.from(new Set([...photo.categories, category]))
@@ -95,6 +109,27 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
     setContent(next);
     setActiveId(data.photos[0]?.id || activeId);
     setStatus("Uploaded");
+  }
+
+  async function uploadAboutPortrait(file: File | undefined) {
+    if (!file || !content) return;
+    setStatus("Uploading about portrait...");
+    const body = new FormData();
+    body.set("file", file);
+    body.set("alt", content.aboutPortrait.alt || "Portrait of Gibson Chu");
+    const response = await fetch("/api/admin/about-portrait", {
+      method: "POST",
+      body,
+    });
+
+    if (!response.ok) {
+      setStatus("About portrait upload failed.");
+      return;
+    }
+
+    const data = (await response.json()) as { aboutPortrait: ImageAsset };
+    setContent({ ...content, aboutPortrait: data.aboutPortrait });
+    setStatus("About portrait updated");
   }
 
   if (!authed || !content) {
@@ -218,6 +253,43 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
               }
             />
           </label>
+          <div className="about-portrait-admin">
+            <div className="about-portrait-preview">
+              <Image
+                src={content.aboutPortrait.src}
+                alt={content.aboutPortrait.alt}
+                width={content.aboutPortrait.width}
+                height={content.aboutPortrait.height}
+                sizes="220px"
+              />
+            </div>
+            <div>
+              <p>About portrait</p>
+              <span>
+                This is a separate image used only on the About page. It will
+                not appear in portfolio grids or homepage tiles.
+              </span>
+              <label>
+                Upload portrait of me
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) =>
+                    void uploadAboutPortrait(event.target.files?.[0])
+                  }
+                />
+              </label>
+              <label>
+                About portrait alt text
+                <input
+                  value={content.aboutPortrait.alt}
+                  onChange={(event) =>
+                    updateAboutPortrait({ alt: event.target.value })
+                  }
+                />
+              </label>
+            </div>
+          </div>
         </div>
 
         {activePhoto ? (
@@ -246,43 +318,61 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
                 ),
               )}
 
-              <div className="toggle-row span-all">
-                <button
-                  type="button"
-                  className={activePhoto.featured ? "active" : ""}
-                  onClick={() =>
-                    updatePhoto(activePhoto.id, { featured: !activePhoto.featured })
-                  }
-                >
-                  <Star size={16} aria-hidden />
-                  Featured
-                </button>
-                <button
-                  type="button"
-                  className={activePhoto.hero ? "active" : ""}
-                  onClick={() => {
-                    const next = {
-                      ...content,
-                      photos: content.photos.map((photo) => ({
-                        ...photo,
-                        hero: photo.id === activePhoto.id,
-                      })),
-                    };
-                    setContent(next);
-                  }}
-                >
-                  Hero image
-                </button>
-                <button
-                  type="button"
-                  className={activePhoto.visible ? "active" : ""}
-                  onClick={() =>
-                    updatePhoto(activePhoto.id, { visible: !activePhoto.visible })
-                  }
-                >
-                  {activePhoto.visible ? <Eye size={16} /> : <EyeOff size={16} />}
-                  Public
-                </button>
+              <div className="photo-flags span-all">
+                <div className="flag-control">
+                  <button
+                    type="button"
+                    className={activePhoto.featured ? "active" : ""}
+                    onClick={() =>
+                      updatePhoto(activePhoto.id, { featured: !activePhoto.featured })
+                    }
+                  >
+                    <Star size={16} aria-hidden />
+                    {activePhoto.featured ? "Featured: On" : "Featured: Off"}
+                  </button>
+                  <p>
+                    Marks this photo as a preferred image for homepage entry
+                    tiles and future selected-work placements.
+                  </p>
+                </div>
+                <div className="flag-control">
+                  <button
+                    type="button"
+                    className={activePhoto.hero ? "active" : ""}
+                    onClick={() => {
+                      const next = {
+                        ...content,
+                        photos: content.photos.map((photo) => ({
+                          ...photo,
+                          hero: photo.id === activePhoto.id,
+                        })),
+                      };
+                      setContent(next);
+                    }}
+                  >
+                    Hero image: {activePhoto.hero ? "Selected" : "Use this"}
+                  </button>
+                  <p>
+                    Chooses the single large image at the top of the homepage.
+                    Selecting this photo replaces the previous hero.
+                  </p>
+                </div>
+                <div className="flag-control">
+                  <button
+                    type="button"
+                    className={activePhoto.visible ? "active" : ""}
+                    onClick={() =>
+                      updatePhoto(activePhoto.id, { visible: !activePhoto.visible })
+                    }
+                  >
+                    {activePhoto.visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                    {activePhoto.visible ? "Public: Visible" : "Public: Hidden"}
+                  </button>
+                  <p>
+                    Controls whether this photo appears on the public website.
+                    Hidden photos stay saved in admin.
+                  </p>
+                </div>
               </div>
 
               <fieldset className="span-all">
