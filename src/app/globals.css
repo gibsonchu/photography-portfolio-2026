@@ -181,6 +181,11 @@ img {
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
+.admin-editor button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .button-link:hover,
 .inquiry-form button:hover,
 .admin-editor button:hover,
@@ -547,6 +552,40 @@ textarea {
 .editor-toolbar {
   border-bottom: 1px solid var(--line);
   padding-bottom: 18px;
+}
+
+.editor-toolbar small {
+  color: var(--muted);
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.storage-ok,
+.storage-warning,
+.admin-error {
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+}
+
+.storage-ok {
+  background: #edf3ea;
+}
+
+.storage-warning,
+.admin-error {
+  background: #f6e6df;
+  border-color: #d7a08c;
+}
+
+.storage-ok span,
+.storage-warning span,
+.admin-error {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .photo-editor {

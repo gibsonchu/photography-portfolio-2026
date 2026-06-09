@@ -2,13 +2,54 @@ import { put, list } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import { defaultContent } from "./default-data";
-import type { ImageAsset, Photo, SiteContent, Submission } from "./types";
+import type { ImageAsset, Photo, SiteContent, StorageInfo, Submission } from "./types";
 
 const localDataPath = path.join(process.cwd(), "data", "content.json");
 const blobDataPath = "site-data/content.json";
 
 function hasBlob() {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+function isVercelRuntime() {
+  return Boolean(process.env.VERCEL);
+}
+
+export function getStorageInfo(): StorageInfo {
+  if (hasBlob()) {
+    return {
+      mode: "vercel-blob",
+      durable: true,
+      writable: true,
+      message:
+        "Using Vercel Blob for durable content metadata and uploaded images.",
+    };
+  }
+
+  if (isVercelRuntime()) {
+    return {
+      mode: "local-file",
+      durable: false,
+      writable: false,
+      message:
+        "BLOB_READ_WRITE_TOKEN is missing. Vercel cannot persist runtime file writes, so admin saves and uploads are disabled until Vercel Blob is configured.",
+    };
+  }
+
+  return {
+    mode: "local-file",
+    durable: false,
+    writable: true,
+    message:
+      "Using local JSON and public/uploads for development. This survives local refreshes but not Vercel deploys or other devices.",
+  };
+}
+
+function assertWritableStorage() {
+  const storage = getStorageInfo();
+  if (!storage.writable) {
+    throw new Error(storage.message);
+  }
 }
 
 function normalizeContent(content: SiteContent): SiteContent {
@@ -19,6 +60,7 @@ function normalizeContent(content: SiteContent): SiteContent {
     aboutPortrait: content.aboutPortrait || defaultContent.aboutPortrait,
     photos: content.photos || [],
     submissions: content.submissions || [],
+    updatedAt: content.updatedAt,
   };
 }
 
@@ -57,7 +99,11 @@ export async function getSiteContent(): Promise<SiteContent> {
 }
 
 export async function saveSiteContent(content: SiteContent) {
-  const normalized = sortContent(content);
+  assertWritableStorage();
+  const normalized = sortContent({
+    ...content,
+    updatedAt: new Date().toISOString(),
+  });
   if (hasBlob()) {
     await put(blobDataPath, JSON.stringify(normalized, null, 2), {
       access: "public",
@@ -80,6 +126,7 @@ export async function addSubmission(submission: Submission) {
 }
 
 export async function uploadPhotoFile(file: File): Promise<Pick<Photo, "src" | "width" | "height">> {
+  assertWritableStorage();
   if (hasBlob()) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
     const blob = await put(`photos/${Date.now()}-${safeName}`, file, {

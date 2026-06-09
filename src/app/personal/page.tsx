@@ -2,6 +2,8 @@ import { LightboxGrid } from "@/components/lightbox-grid";
 import { PageShell } from "@/components/page-shell";
 import { getSiteContent, photosFor } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 const subcategories = ["New York", "Travel", "Film Diaries"] as const;
 
 export default async function PersonalPage() {

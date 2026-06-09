@@ -2,6 +2,8 @@ import Image from "next/image";
 import { PageShell } from "@/components/page-shell";
 import { getSiteContent } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function AboutPage() {
   const content = await getSiteContent();
   const portrait = content.aboutPortrait;

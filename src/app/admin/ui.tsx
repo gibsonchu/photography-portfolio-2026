@@ -9,20 +9,35 @@ import {
   type ImageAsset,
   type Photo,
   type SiteContent,
+  type StorageInfo,
 } from "@/lib/types";
 
 type Props = {
   initialAuthed: boolean;
   initialContent: SiteContent | null;
+  initialStorage: StorageInfo | null;
 };
 
-export function AdminDashboard({ initialAuthed, initialContent }: Props) {
+type AdminDataResponse = {
+  content: SiteContent;
+  storage: StorageInfo;
+};
+
+export function AdminDashboard({
+  initialAuthed,
+  initialContent,
+  initialStorage,
+}: Props) {
   const [authed, setAuthed] = useState(initialAuthed);
   const [password, setPassword] = useState("");
   const [content, setContent] = useState<SiteContent | null>(initialContent);
   const [activeId, setActiveId] = useState(initialContent?.photos[0]?.id || "");
   const [uploadCategory, setUploadCategory] = useState<Category>("Events");
   const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [storage, setStorage] = useState<StorageInfo | null>(initialStorage);
+  const [lastSavedAt, setLastSavedAt] = useState(initialContent?.updatedAt || "");
   const activePhoto = useMemo(
     () => content?.photos.find((photo) => photo.id === activeId) || null,
     [content, activeId],
@@ -38,22 +53,51 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
       setStatus("Password did not match.");
       return;
     }
-    const data = (await fetch("/api/admin/data").then((res) => res.json())) as SiteContent;
-    setContent(data);
-    setActiveId(data.photos[0]?.id || "");
+    const data = (await fetch("/api/admin/data").then((res) => res.json())) as AdminDataResponse;
+    setContent(data.content);
+    setStorage(data.storage);
+    setLastSavedAt(data.content.updatedAt || "");
+    setActiveId(data.content.photos[0]?.id || "");
     setAuthed(true);
     setStatus("");
+    setError("");
   }
 
   async function save(nextContent = content) {
     if (!nextContent) return;
-    setStatus("Saving...");
-    await fetch("/api/admin/data", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nextContent),
-    });
-    setStatus("Saved");
+    setIsSaving(true);
+    setStatus("Save started...");
+    setError("");
+    console.info("[admin] save started");
+    console.info("[admin] payload being saved", nextContent);
+
+    try {
+      const response = await fetch("/api/admin/data", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nextContent),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || "Save failed.");
+      }
+
+      const savedContent = data.content as SiteContent;
+      setContent(savedContent);
+      setStorage(data.storage as StorageInfo);
+      setLastSavedAt(savedContent.updatedAt || new Date().toISOString());
+      setStatus("Saved");
+      console.info("[admin] save success", data);
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error ? saveError.message : "Save failed.";
+      setStatus("Save failed");
+      setError(message);
+      console.error("[admin] save failure", saveError);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function updatePhoto(id: string, patch: Partial<Photo>) {
@@ -104,11 +148,28 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
     Array.from(files).forEach((file) => body.append("files", file));
     body.set("category", uploadCategory);
     const response = await fetch("/api/admin/upload", { method: "POST", body });
-    const data = (await response.json()) as { photos: Photo[] };
-    const next = { ...content, photos: [...content.photos, ...data.photos] };
+    const data = (await response.json()) as {
+      photos?: Photo[];
+      content?: SiteContent;
+      storage?: StorageInfo;
+      message?: string;
+    };
+
+    if (!response.ok || !data.photos) {
+      const message = data.message || "Photo upload failed.";
+      setError(message);
+      setStatus("Upload failed");
+      console.error("[admin] upload failure", data);
+      return;
+    }
+
+    const next = data.content || { ...content, photos: [...content.photos, ...data.photos] };
     setContent(next);
+    if (data.storage) setStorage(data.storage);
+    setLastSavedAt(next.updatedAt || lastSavedAt);
     setActiveId(data.photos[0]?.id || activeId);
     setStatus("Uploaded");
+    setError("");
   }
 
   async function uploadAboutPortrait(file: File | undefined) {
@@ -122,14 +183,27 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
       body,
     });
 
-    if (!response.ok) {
+    const data = (await response.json()) as {
+      aboutPortrait?: ImageAsset;
+      content?: SiteContent;
+      storage?: StorageInfo;
+      message?: string;
+    };
+
+    if (!response.ok || !data.aboutPortrait) {
+      const message = data.message || "About portrait upload failed.";
+      setError(message);
       setStatus("About portrait upload failed.");
+      console.error("[admin] about portrait upload failure", data);
       return;
     }
 
-    const data = (await response.json()) as { aboutPortrait: ImageAsset };
-    setContent({ ...content, aboutPortrait: data.aboutPortrait });
+    const next = data.content || { ...content, aboutPortrait: data.aboutPortrait };
+    setContent(next);
+    if (data.storage) setStorage(data.storage);
+    setLastSavedAt(next.updatedAt || lastSavedAt);
     setStatus("About portrait updated");
+    setError("");
   }
 
   if (!authed || !content) {
@@ -225,12 +299,30 @@ export function AdminDashboard({ initialAuthed, initialContent }: Props) {
 
       <section className="admin-editor">
         <div className="editor-toolbar">
-          <p>{status || "Ready"}</p>
-          <button type="button" onClick={() => void save()}>
+          <div>
+            <p>{status || "Ready"}</p>
+            {lastSavedAt ? (
+              <small>Last saved at {new Date(lastSavedAt).toLocaleString()}</small>
+            ) : (
+              <small>No saved timestamp yet</small>
+            )}
+          </div>
+          <button type="button" disabled={isSaving} onClick={() => void save()}>
             <Save size={16} aria-hidden />
-            Save changes
+            {isSaving ? "Saving..." : "Save changes"}
           </button>
         </div>
+
+        {storage ? (
+          <div className={storage.durable ? "storage-ok" : "storage-warning"}>
+            <strong>
+              Storage: {storage.mode} {storage.durable ? "(durable)" : "(not durable)"}
+            </strong>
+            <span>{storage.message}</span>
+          </div>
+        ) : null}
+
+        {error ? <div className="admin-error">{error}</div> : null}
 
         <div className="content-editor">
           <label>

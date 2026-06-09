@@ -2,6 +2,8 @@ import { LightboxGrid } from "@/components/lightbox-grid";
 import { PageShell } from "@/components/page-shell";
 import { getSiteContent, photosFor } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function EventsPage() {
   const content = await getSiteContent();
 

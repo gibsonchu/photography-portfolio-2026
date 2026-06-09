@@ -45,3 +45,15 @@ npm run dev
 ```bash
 npm run build
 ```
+
+## Refresh Test Checklist
+
+After configuring `BLOB_READ_WRITE_TOKEN` on Vercel:
+
+1. Open `/admin` and confirm the storage banner says `vercel-blob (durable)`.
+2. Edit homepage intro text and one photo caption.
+3. Upload or replace the About portrait.
+4. Click `Save changes` and wait for `Saved` plus an updated timestamp.
+5. Refresh `/admin`; the edits should still be present.
+6. Open `/`, `/about`, and the relevant portfolio page in a new browser; the public site should show the same saved content.
+7. Trigger a redeploy; the saved admin content should remain because it is loaded from Vercel Blob, not the repo JSON file.

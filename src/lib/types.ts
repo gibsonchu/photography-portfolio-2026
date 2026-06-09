@@ -53,4 +53,12 @@ export type SiteContent = {
   aboutPortrait: ImageAsset;
   photos: Photo[];
   submissions: Submission[];
+  updatedAt?: string;
+};
+
+export type StorageInfo = {
+  mode: "vercel-blob" | "local-file";
+  durable: boolean;
+  writable: boolean;
+  message: string;
 };
