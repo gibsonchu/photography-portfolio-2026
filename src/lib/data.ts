@@ -116,6 +116,7 @@ export async function saveSiteContent(content: SiteContent) {
     await put(blobDataPath, JSON.stringify(normalized, null, 2), {
       access: "public",
       addRandomSuffix: false,
+      allowOverwrite: true,
       contentType: "application/json",
       token: getBlobToken(),
     });
