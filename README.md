@@ -28,10 +28,12 @@ Set these environment variables in production:
 ```bash
 ADMIN_PASSWORD=replace-with-a-strong-password
 ADMIN_SECRET=replace-with-a-long-random-secret
-BLOB_READ_WRITE_TOKEN=your-vercel-blob-token
+PORTFOLIO_BLOB_READ_WRITE_TOKEN=your-portfolio-blob-token
+PORTFOLIO_BLOB_STORE_ID=your-portfolio-blob-store-id
+PORTFOLIO_BLOB_WEBHOOK_PUBLIC_KEY=your-portfolio-blob-webhook-public-key
 ```
 
-Without `BLOB_READ_WRITE_TOKEN`, uploads and content edits persist locally in `data/content.json` and `public/uploads`. On Vercel, set up Vercel Blob so admin uploads and edits persist across deployments.
+Without `PORTFOLIO_BLOB_READ_WRITE_TOKEN`, uploads and content edits persist locally in `data/content.json` and `public/uploads`. On Vercel, set up the connected Portfolio Blob store so admin uploads and edits persist across deployments.
 
 ## Development
 
@@ -48,7 +50,7 @@ npm run build
 
 ## Refresh Test Checklist
 
-After configuring `BLOB_READ_WRITE_TOKEN` on Vercel:
+After configuring `PORTFOLIO_BLOB_READ_WRITE_TOKEN` on Vercel:
 
 1. Open `/admin` and confirm the storage banner says `vercel-blob (durable)`.
 2. Edit homepage intro text and one photo caption.
