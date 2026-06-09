@@ -7,8 +7,12 @@ import type { ImageAsset, Photo, SiteContent, StorageInfo, Submission } from "./
 const localDataPath = path.join(process.cwd(), "data", "content.json");
 const blobDataPath = "site-data/content.json";
 
+function getBlobToken() {
+  return process.env.PORTFOLIO_BLOB_READ_WRITE_TOKEN;
+}
+
 function hasBlob() {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(getBlobToken());
 }
 
 function isVercelRuntime() {
@@ -22,7 +26,7 @@ export function getStorageInfo(): StorageInfo {
       durable: true,
       writable: true,
       message:
-        "Using Vercel Blob for durable content metadata and uploaded images.",
+        `Using Vercel Blob for durable content metadata and uploaded images. Store ID: ${process.env.PORTFOLIO_BLOB_STORE_ID || "not provided"}. Webhook key: ${process.env.PORTFOLIO_BLOB_WEBHOOK_PUBLIC_KEY ? "configured" : "not provided"}.`,
     };
   }
 
@@ -32,7 +36,7 @@ export function getStorageInfo(): StorageInfo {
       durable: false,
       writable: false,
       message:
-        "BLOB_READ_WRITE_TOKEN is missing. Vercel cannot persist runtime file writes, so admin saves and uploads are disabled until Vercel Blob is configured.",
+        "PORTFOLIO_BLOB_READ_WRITE_TOKEN is missing. Vercel cannot persist runtime file writes, so admin saves and uploads are disabled until the connected Portfolio Blob store is available to Production.",
     };
   }
 
@@ -77,7 +81,11 @@ function sortContent(content: SiteContent): SiteContent {
 
 export async function getSiteContent(): Promise<SiteContent> {
   if (hasBlob()) {
-    const blobs = await list({ prefix: blobDataPath, limit: 1 });
+    const blobs = await list({
+      prefix: blobDataPath,
+      limit: 1,
+      token: getBlobToken(),
+    });
     const match = blobs.blobs.find((blob) => blob.pathname === blobDataPath);
     if (match) {
       const response = await fetch(match.url, { cache: "no-store" });
@@ -109,6 +117,7 @@ export async function saveSiteContent(content: SiteContent) {
       access: "public",
       addRandomSuffix: false,
       contentType: "application/json",
+      token: getBlobToken(),
     });
     return;
   }
@@ -131,6 +140,7 @@ export async function uploadPhotoFile(file: File): Promise<Pick<Photo, "src" | "
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
     const blob = await put(`photos/${Date.now()}-${safeName}`, file, {
       access: "public",
+      token: getBlobToken(),
     });
     return { src: blob.url, width: 1600, height: 1067 };
   }
