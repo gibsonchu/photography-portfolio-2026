@@ -30,8 +30,13 @@ export default async function Home() {
           />
         </div>
         <div className="hero-copy">
-          <p>Gibson Chu</p>
-          <h1>{content.homeIntro}</h1>
+          <div className="hero-system">
+            <span>NYC</span>
+            <span>Documentary Photography</span>
+            <span>People / Cities / Gatherings</span>
+          </div>
+          <h1>Gibson Chu</h1>
+          <p className="hero-statement">{content.homeIntro}</p>
         </div>
       </section>
 
