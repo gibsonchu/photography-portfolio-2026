@@ -3,7 +3,7 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="footer">
-      <p>Gibson Chu photographs people, gatherings, cities, and communities.</p>
+      <p>Gibson Chu / New York-based documentary photography.</p>
       <div>
         <Link href="/contact">Inquire</Link>
         <Link href="/admin">Admin</Link>
