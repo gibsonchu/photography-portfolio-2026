@@ -778,6 +778,28 @@ fieldset input {
     flex-direction: column;
   }
 
+  .site-header {
+    gap: 18px;
+  }
+
+  .site-header nav {
+    border-top: 1px solid var(--line);
+    display: grid;
+    gap: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-top: 14px;
+    width: 100%;
+  }
+
+  .site-header nav a {
+    border-right: 1px solid var(--line);
+    padding: 0 12px 10px 0;
+  }
+
+  .site-header nav a:nth-child(3n) {
+    border-right: 0;
+  }
+
   .entry-grid,
   .about-layout,
   .contact-layout,
