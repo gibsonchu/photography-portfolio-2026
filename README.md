@@ -1,61 +1,7 @@
-# Gibson Chu Photography Portfolio
+# Gibson Chu Photography
 
-A clean editorial Next.js portfolio for event, portrait, documentary, street, travel, and film photography.
+Responsive recreation of https://photos.gibsonchu.com/ with the original photographs, Cargo Diatype variable font, 28-image slideshow, eight public project galleries, information overlay, and keyboard/touch image viewer.
 
-## Routes
+Run `npm install` then `npm run dev`. Build with `npm run build`; Vercel serves `dist/client` with SPA route rewrites. Production: https://gibsonchuphotos.vercel.app/.
 
-- `/` home
-- `/portfolio` full portfolio index
-- `/events`
-- `/portraits`
-- `/personal`
-- `/about`
-- `/contact`
-- `/admin`
-
-## Admin
-
-The admin dashboard supports drag-and-drop multi-photo uploads, drag ordering, hero selection, featured flags, show/hide, category assignment, metadata editing, homepage/about copy editing, and contact submission viewing.
-
-Local default password:
-
-```bash
-admin123
-```
-
-Set these environment variables in production:
-
-```bash
-ADMIN_PASSWORD=replace-with-a-strong-password
-ADMIN_SECRET=replace-with-a-long-random-secret
-PORTFOLIO_BLOB_READ_WRITE_TOKEN=your-portfolio-blob-token
-PORTFOLIO_BLOB_STORE_ID=your-portfolio-blob-store-id
-PORTFOLIO_BLOB_WEBHOOK_PUBLIC_KEY=your-portfolio-blob-webhook-public-key
-```
-
-Without `PORTFOLIO_BLOB_READ_WRITE_TOKEN`, uploads and content edits persist locally in `data/content.json` and `public/uploads`. On Vercel, set up the connected Portfolio Blob store so admin uploads and edits persist across deployments.
-
-## Development
-
-```bash
-npm install
-npm run dev
-```
-
-## Verification
-
-```bash
-npm run build
-```
-
-## Refresh Test Checklist
-
-After configuring `PORTFOLIO_BLOB_READ_WRITE_TOKEN` on Vercel:
-
-1. Open `/admin` and confirm the storage banner says `vercel-blob (durable)`.
-2. Edit homepage intro text and one photo caption.
-3. Upload or replace the About portrait.
-4. Click `Save changes` and wait for `Saved` plus an updated timestamp.
-5. Refresh `/admin`; the edits should still be present.
-6. Open `/`, `/about`, and the relevant portfolio page in a new browser; the public site should show the same saved content.
-7. Trigger a redeploy; the saved admin content should remain because it is loaded from Vercel Blob, not the repo JSON file.
+Content is stored in `src/data.json`. Original image attribution and source URLs are recorded in `asset-provenance.json`. Images are locally hosted 2000px Cargo renditions. Historical unlinked gallery routes are preserved. Source copy, gallery order, translucent overlays, and five-column mobile index are retained.
