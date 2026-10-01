@@ -1,14 +1,13 @@
 import React,{useState,useEffect,useRef,memo} from 'react';
-import data from './data.json';
-const {pages,media}=data;
 const route=()=>decodeURIComponent(location.pathname).replace(/^\/+|\/+$/g,'');
-const initial=()=>pages[route()]&&pages[route()].id!==pages.homepage.id?[route()]:[];
 const Markup=memo(({html})=><div dangerouslySetInnerHTML={{__html:html}}/>);
-export default function App(){
+export default function App({data}){
+ const {pages,media}=data;
+ const initial=()=>pages[route()]&&pages[route()].id!==pages.homepage.id?[route()]:[];
  const [stack,setStack]=useState(initial),[slide,setSlide]=useState(0),[zoom,setZoom]=useState(null);const touch=useRef(null);
  const homePhotos=pages.homepage.photos;
  function navigate(path){const p=path.replace(/^\//,'');if(!pages[p])return;setZoom(null);setStack(s=>p==='index'||p==='information'?[p]:[...s.filter(x=>x!==p),p]);history.pushState({},'',`/${p}`)}
- function close(){if(zoom){setZoom(null);return}setStack(s=>{const next=s.slice(0,-1);history.pushState({},'',next.length?'/'+next.at(-1):'/');return next})}
+ function close(){if(zoom){setZoom(null);return}const next=stack.slice(0,-1);history.pushState({},'',next.length?'/'+next.at(-1):'/');setStack(next)}
  function move(n){if(zoom)setZoom(z=>({...z,index:(z.index+n+z.photos.length)%z.photos.length}));else setSlide(s=>(s+n+homePhotos.length)%homePhotos.length)}
  useEffect(()=>{const resize=()=>{const w=innerWidth,h=innerHeight,portrait=w/h<=.8,mobile=portrait||(w/h>=2/3&&h<=500),weight=(mobile&&!portrait?18:9)+5*Math.min(1,Math.max(0,h/w-1)/.777777778);document.documentElement.style.fontSize=`${Math.max(20,Math.min(w,h)*weight/100)*.16*(mobile?1.5:1)}px`;document.documentElement.classList.toggle('mobile',mobile)};resize();addEventListener('resize',resize);const pop=()=>{setStack(initial());setZoom(null)};addEventListener('popstate',pop);return()=>{removeEventListener('resize',resize);removeEventListener('popstate',pop)}},[]);
  useEffect(()=>{const key=e=>{if(e.key==='Escape')close();if((!stack.length||zoom)&&['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();move(e.key==='ArrowLeft'?-1:1)}};addEventListener('keydown',key);return()=>removeEventListener('keydown',key)},[stack,zoom]);

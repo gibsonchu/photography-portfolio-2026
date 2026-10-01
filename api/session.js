@@ -1,0 +1,4 @@
+import {authenticated,configured,verifyPassword,issueSession,sessionCookie,sameOrigin,throttle} from '../server/auth.js';
+import {jsonBody,send,failure} from '../server/http.js';
+import {local} from '../server/storage.js';
+export default async function handler(req,res){try{if(req.method==='GET')return send(res,200,{authenticated:authenticated(req),configured:configured(),localUploads:local()});sameOrigin(req);if(req.method==='DELETE'){res.setHeader('Set-Cookie',sessionCookie(''));return send(res,200,{ok:true})}if(req.method!=='POST')return send(res,405,{error:'Method not allowed'});if(!configured())return send(res,503,{error:'Admin login has not been configured.'});await throttle(req);const body=await jsonBody(req);if(!verifyPassword(body.password))return send(res,401,{error:'Incorrect password.'});res.setHeader('Set-Cookie',sessionCookie(issueSession()));return send(res,200,{ok:true})}catch(e){failure(res,e)}}

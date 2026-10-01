@@ -1,1 +1,16 @@
-{"framework":"vite","buildCommand":"npm run build","outputDirectory":"dist/client","rewrites":[{"source":"/((?!assets/).*)","destination":"/index.html"}]}
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/client",
+  "rewrites": [
+    {
+      "source": "/((?!assets/|api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/*.js": {
+      "includeFiles": "src/cms-seed.json"
+    }
+  }
+}
